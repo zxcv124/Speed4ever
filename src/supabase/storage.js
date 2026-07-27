@@ -1,5 +1,5 @@
 import { auth } from './auth';
-import supabase from './client';
+import supabase, { isSupabaseConfigured } from './client';
 
 const bucket = process.env.REACT_APP_SUPABASE_STORAGE_BUCKET || 'speed4ever-images';
 
@@ -14,6 +14,18 @@ const pathFromPublicUrl = url => {
 export const onUploadFile = async (file, onUploading, itemId) => {
     const user = auth.currentUser;
     if (!user) throw Error('You need to login again.');
+
+    if (!isSupabaseConfigured) {
+        onUploading && onUploading(10);
+        const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(Error('Could not read image file.'));
+            reader.readAsDataURL(file);
+        });
+        onUploading && onUploading(100);
+        return dataUrl;
+    }
 
     const path = `${user.uid}${itemId ? `/${itemId}` : ''}/${Date.now()}-${sanitizeFileName(file.name)}`;
     onUploading && onUploading(10);
@@ -34,6 +46,8 @@ export const onUploadFile = async (file, onUploading, itemId) => {
 }
 
 export const onDeleteFile = async url => {
+    if (!isSupabaseConfigured || String(url || '').startsWith('data:')) return;
+
     const path = pathFromPublicUrl(url);
     if (!path) return;
     const { error } = await supabase.storage.from(bucket).remove([path]);

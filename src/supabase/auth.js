@@ -1,15 +1,44 @@
 import { getDOC, setDOC } from './db';
 import { onUploadFile } from './storage';
-import supabase from './client';
+import supabase, { isSupabaseConfigured } from './client';
 
 let currentUser = null;
 
 const GUEST_USERNAME_PREFIX = 'guest';
+const LOCAL_GUEST_STORAGE_KEY = 'speed4ever-local-guest-user';
+const LOCAL_GUEST_AUTH_EVENT = 'speed4ever-local-guest-auth';
 
 const getGuestUsername = userId => `${GUEST_USERNAME_PREFIX}${String(userId || '').replace(/-/g, '').slice(0, 12)}`;
 
+const getLocalGuestId = () => {
+    const stored = localStorage.getItem(LOCAL_GUEST_STORAGE_KEY);
+    if (stored) return JSON.parse(stored).uid;
+
+    const uid = `local-${window.crypto?.randomUUID?.() || Date.now()}`;
+    localStorage.setItem(LOCAL_GUEST_STORAGE_KEY, JSON.stringify({ uid }));
+    return uid;
+}
+
+const getLocalGuestUser = () => {
+    const uid = getLocalGuestId();
+    return {
+        id: uid,
+        uid,
+        displayName: 'guest',
+        photoURL: '',
+        phoneNumber: '',
+        accessToken: `local-guest:${uid}`,
+        metadata: { isGuest: true },
+        isGuest: true,
+        isLocalGuest: true
+    };
+}
+
+const notifyLocalGuestAuthChange = () => window.dispatchEvent(new Event(LOCAL_GUEST_AUTH_EVENT));
+
 const normalizeUser = (user, session) => {
     if (!user) return null;
+    if (user.isLocalGuest) return user;
 
     const metadata = user.user_metadata || {};
     const displayName = metadata.displayName || metadata.username || '';
@@ -41,6 +70,14 @@ export const getRecaptcha = () => Promise.resolve();
 export const resetRecaptcha = () => Promise.resolve();
 
 export const onAuthUserChanged = cb => {
+    if (!isSupabaseConfigured) {
+        const onLocalAuthChange = () => cb(currentUser);
+        const stored = localStorage.getItem(LOCAL_GUEST_STORAGE_KEY);
+        cb(stored ? setCurrentUser(getLocalGuestUser()) : null);
+        window.addEventListener(LOCAL_GUEST_AUTH_EVENT, onLocalAuthChange);
+        return () => window.removeEventListener(LOCAL_GUEST_AUTH_EVENT, onLocalAuthChange);
+    }
+
     supabase.auth.getSession().then(({ data }) => {
         cb(setCurrentUser(data.session?.user, data.session));
     });
@@ -52,9 +89,18 @@ export const onAuthUserChanged = cb => {
     return () => data.subscription.unsubscribe();
 }
 
-export const signOutUser = () => supabase.auth.signOut().then(() => {
-    currentUser = null;
-});
+export const signOutUser = () => {
+    if (!isSupabaseConfigured) {
+        localStorage.removeItem(LOCAL_GUEST_STORAGE_KEY);
+        currentUser = null;
+        notifyLocalGuestAuthChange();
+        return Promise.resolve();
+    }
+
+    return supabase.auth.signOut().then(() => {
+        currentUser = null;
+    });
+}
 
 export const onLogin = email => {
     const normalizedEmail = String(email || '').trim().toLowerCase();
@@ -82,6 +128,12 @@ export const onLogin = email => {
 }
 
 export const onGuestLogin = async () => {
+    if (!isSupabaseConfigured) {
+        const user = setCurrentUser(getLocalGuestUser());
+        notifyLocalGuestAuthChange();
+        return user;
+    }
+
     let { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) throw sessionError;
 
