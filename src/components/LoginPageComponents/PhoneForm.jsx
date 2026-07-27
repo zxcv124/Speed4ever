@@ -31,25 +31,13 @@ const PhoneForm = ({ onSubmit, phoneNumber }) => {
             onSubmit={onPhoneSubmit}
             className='flex-1 mt-lg-5 d-flex flex-column gap-inherit'
             footer={(isLoading, id) => (
-                <div className='d-grid gap-3 mt-md-0 mt-auto'>
-                    <button
-                        id={id}
-                        className='btn-primary me-md-auto'
-                        loading={isLoading ? "loading" : ""}
-                        disabled={isLoading || guestStatus.isLoading}
+                <button
+                    id={id}
+                    className='btn-primary mt-md-0 me-md-auto mt-auto'
+                    loading={isLoading ? "loading" : ""}
+                    disabled={isLoading || guestStatus.isLoading}
 
-                    >Send OTP</button>
-                    {isGuestEnabled && (
-                        <button
-                            type='button'
-                            className='btn-primary bg-secondary me-md-auto'
-                            loading={guestStatus.isLoading ? "loading" : ""}
-                            disabled={isLoading || guestStatus.isLoading}
-                            onClick={onGuestSubmit}
-                        >Continue as Guest</button>
-                    )}
-                    {guestStatus.err && <small className='tx-danger'>{guestStatus.err.message || guestStatus.err}</small>}
-                </div>
+                >Send OTP</button>
             )}>
             <TextField
                 defaultValue={phoneNumber}
@@ -62,6 +50,16 @@ const PhoneForm = ({ onSubmit, phoneNumber }) => {
                 errorText='Enter a valid email address.'
                 className='mx-auto w-100'
             />
+            {isGuestEnabled && (
+                <button
+                    type='button'
+                    className='btn-primary bg-secondary me-md-auto'
+                    loading={guestStatus.isLoading ? "loading" : ""}
+                    disabled={guestStatus.isLoading}
+                    onClick={onGuestSubmit}
+                >Continue as Guest</button>
+            )}
+            {guestStatus.err && <small className='tx-danger'>{guestStatus.err.message || guestStatus.err}</small>}
         </Form>
     )
 }
