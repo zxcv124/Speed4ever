@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const { throwHttpError } = require('./_errors');
 
 const parseServiceAccount = () => {
     if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
@@ -23,6 +24,9 @@ const parseServiceAccount = () => {
 const getFirebaseAdmin = () => {
     if (!admin.apps.length) {
         const serviceAccount = parseServiceAccount();
+        if (!serviceAccount && process.env.VERCEL) {
+            throwHttpError('Firebase Admin credentials are not configured.', 503);
+        }
 
         admin.initializeApp(serviceAccount ? {
             credential: admin.credential.cert(serviceAccount),

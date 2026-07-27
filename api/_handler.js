@@ -22,6 +22,12 @@ const createHandler = action => async (req, res) => {
         return;
     }
 
+    const authHeader = req.headers.authorization || req.headers.Authorization || '';
+    if (!/^Bearer\s+.+/i.test(authHeader)) {
+        sendJson(res, 401, { message: 'Authorization token is required.' });
+        return;
+    }
+
     try {
         const firebase = getFirebaseAdmin();
         const user = await authenticateUser({ ...firebase, req });
