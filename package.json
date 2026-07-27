@@ -2,6 +2,9 @@
   "name": "sweetpain688",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "@emailjs/browser": "^3.4.0",
     "@testing-library/jest-dom": "^5.14.1",

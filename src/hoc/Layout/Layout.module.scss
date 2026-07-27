@@ -1,0 +1,29 @@
+@import '../../scss/colors.scss';
+
+.lines {
+    transform: rotate(20deg);
+    margin-left: calc(-10rem + 2vw);
+    margin-top: -10rem;
+    transform: left top;
+    >div{
+        border: 1px solid $grey;
+        min-width: 1rem;
+        height: 400vh;
+    }
+}
+
+@media (max-width: 800px) {
+    .lines {
+        >div:nth-child(5n+1) {
+            display: none;
+        }
+    }
+}
+
+@media (max-width: 500px) {
+    .lines {
+        >div:nth-child(4n+1) {
+            display: none;
+        }
+    }
+}

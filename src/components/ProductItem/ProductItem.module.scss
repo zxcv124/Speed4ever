@@ -1,0 +1,12 @@
+@import '../../scss/colors.scss';
+
+.root{
+    border: 1px solid $grey-darken-1;
+    border-radius: 0.2rem;
+}
+
+.img {
+    border: 1px solid $grey-darken-1;
+    border-radius: inherit;
+    width: 11rem;
+}

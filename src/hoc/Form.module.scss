@@ -1,0 +1,36 @@
+.success{
+    position: relative;
+    border-radius: 0.4rem;
+    overflow: hidden;
+    &::before{
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        background: currentColor;
+        opacity: 0.15;
+    }
+    >span{
+        position: relative;
+        z-index: 10;
+        display: block;
+        margin: -0.25em 0;
+    }
+}
+form [class *= 'errorText']{
+    display: none !important;
+    width: 100%;
+    font-size: 0.75rem;
+    color: var(--accent-2);
+    font-weight: normal;
+
+}
+form[class *= "submitted"] {
+    input, select{
+        &:invalid ~ [class *= "errorText"]{
+            display: block !important;
+        }
+    }
+}

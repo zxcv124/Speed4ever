@@ -1,0 +1,55 @@
+@import '../../scss/colors.scss';
+
+.label{
+    grid-row: 1/2;
+}
+.label, .helperText{
+    color: $grey-darken-1;
+}
+
+.formfield {
+    font-size: inherit;
+    font-family: inherit;
+    border: 1px solid $grey-darken-1;
+    background: transparent;
+    padding: calc(0.5rem + 1px) 0.75rem calc(0.5rem - 1px) 0.75rem;
+    outline: none;
+    border-radius: 0.5rem;
+    width: 100%;
+    min-width: 0;
+    resize: none;
+    overflow: hidden;
+    position: relative;
+    &:focus {
+        border-color: $primary;
+        & ~ .label {
+            color: $primary;
+        }
+    }
+    &[type="date"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+    }
+}
+
+.errorText,.helperText {
+    line-height: 1.15em;
+}
+
+form[class *= "submitted"] .formfield:invalid {
+    border-color: $danger !important;
+    & ~ .label, ~ .helperText {
+        color: $danger !important;
+    }
+    & ~ .errorText {
+        display: block !important;
+    }
+}

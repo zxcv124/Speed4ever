@@ -1,0 +1,15 @@
+.main{
+    width: 55%;
+}
+.logoContainer{
+    transform: skew(45deg);
+    margin-right: -20%;
+    border-radius: 0 0 2rem 0;
+    img {
+        transform: skew(-45deg);
+    }
+}
+.user{
+    width: 4rem;
+    min-width: 2rem;
+}

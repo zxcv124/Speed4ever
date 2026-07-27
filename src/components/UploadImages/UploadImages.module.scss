@@ -1,0 +1,12 @@
+@import '../../scss/colors.scss';
+
+.wrapper {
+    width: 20rem;
+    img {
+        border: 1px solid $grey;
+    }
+}
+
+.uploadWrapper{
+    width: 10rem;
+}

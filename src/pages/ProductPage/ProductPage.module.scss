@@ -1,0 +1,30 @@
+@import '../../scss/colors.scss';
+
+.logo{
+    width: 10rem;
+}
+.imageWrapper{
+    bottom: 1rem;
+    position: relative;
+    width: 15rem;
+    max-height: 40rem;
+    img {
+        margin-right: 0.75rem;
+        width: calc(100% - 0.75rem);
+    }
+}
+
+.main{
+    border-bottom: 0.2em solid $primary;
+
+}
+
+@media (max-width: 600px) {
+    .logo{
+        width: 8rem;
+    }
+    .imageWrapper {
+        width: 10rem;
+        bottom: 0;
+    }
+}

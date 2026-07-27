@@ -1,0 +1,110 @@
+@import '../../scss/colors.scss';
+
+.root{
+    grid-template-columns: 30% 1fr;
+}
+
+
+.triangle{
+    font-size: clamp(1rem, 6vw, 1.75rem);
+    margin-left: -43%;
+    >a {
+        transform: skew(-45deg);
+        min-width: 110%;
+        margin-left: calc(3% + 2rem);
+    }
+    img {
+        height: 3.5em;
+        min-width: 120%;
+        object-fit: cover;
+        transform: skew(45deg);
+        margin-left: -20%;
+    }
+
+}
+.dots{
+    background: $dark;
+    &::after, &::before, & {
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: 0.75rem;
+    }
+    &::after {
+        left: -1.25rem;
+        background: $secondary;
+    }
+    &::before {
+        right: -1.25rem;
+        background: $primary;
+    }
+    &::after, &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+    }
+}
+
+.links{
+    li {
+        display: flex;
+    }
+    a, button {
+        border-radius: 0.8em 0 0 0.8em;
+        flex: 1;
+        padding-right: 2.25em;
+    }
+}
+
+.img{
+    width: 50%;
+    margin: auto;
+    display: block;
+}
+
+@media (max-width: 1200px) {
+    .root {
+        grid-template-columns: 24rem 1fr;
+    }
+    .triangle {
+        margin-left: -23rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .root {
+        grid-template-columns: 21rem 1fr;
+    }
+    .triangle {
+        margin-left: -20rem;
+    }
+    .links a {
+        padding-right: 1.5em;
+    }
+}
+
+
+@media (max-width: 430px) {
+    .root {
+        grid-template-columns: 19rem 1fr;
+    }
+    .triangle{
+        margin-left: -18rem;
+        img {
+            height: 4.5rem;
+        }
+    }
+}
+
+
+@media (max-width: 385px) {
+    .root {
+        grid-template-columns: 18rem 1fr;
+    }
+    .triangle {
+        margin-left: -17.5rem;
+    }
+    .links a {
+        padding-right: 1.25em;
+        padding-left: 1em;
+    }
+}

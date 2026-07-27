@@ -1,0 +1,12 @@
+@import '../../scss/colors.scss';
+
+.logo{
+    max-width: 10vw;
+}
+
+.title{
+    border-bottom: 0.15em solid $secondary;
+    color: $primary;
+    font-weight: 500;
+    padding-bottom: 0.5em;
+}

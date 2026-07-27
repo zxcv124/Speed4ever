@@ -1,0 +1,40 @@
+.form-card {
+    @extend .elevation-1;
+    background: $light;
+    padding: 1.5rem 1rem 1rem 1rem;
+    display: grid;
+    align-items: center;
+    .form-line {
+        display: none;
+    }
+    >div {
+        &:not(:first-child) {
+            margin-top: 1.25rem;
+        }
+    }
+    @media (min-width: 1200px) {
+        display: flex;
+        padding: 0 0 0 1.5rem;
+        gap: 1rem;
+        .form-line {
+            display: block;
+            border-right: 1px solid $grey-lighten-3;
+            height: 2.5rem;
+        }
+        .Form-Border{
+            border: none !important;
+        }
+        >div {
+            margin-top: 0 !important;
+            &:not(.form-line) {
+                flex: 1;
+            }
+        }
+        >button:last-child {
+            right: -0.2em;
+        }
+    }
+    @media (min-width: 1400px) {
+        gap: 1.5rem;
+    }
+}

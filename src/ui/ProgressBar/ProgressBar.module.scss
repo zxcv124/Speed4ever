@@ -1,0 +1,13 @@
+.root {
+    backdrop-filter: blur(0.25rem);
+    z-index: 2;
+}
+
+.bar {
+    border: 1px solid;
+    border-radius: 1em;
+    >div {
+        transition: linear 0.1s all;
+        height: 1.5em;
+    }
+}

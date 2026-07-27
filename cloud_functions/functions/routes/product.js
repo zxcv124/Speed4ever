@@ -55,8 +55,8 @@ router.post('/expire-product', authMiddleware, productMiddleware, (req, res, nex
                         subject: `Congratulations, you have won bid of ${product.title}!`,
                         html: `
                             You have successfully won the bid on <b>${product.title}</b>.
-                            Now, you can buy this product in <b>${product.price}</b> by contacting to the seller through 
-                            his phone number <a href="tel:${user.phoneNumber}">${user.phoneNumber}</a> 
+                            Now, you can buy this product in <b>${product.price}</b> by contacting to the seller through
+                            his phone number <a href="tel:${user.phoneNumber}">${user.phoneNumber}</a>
                             or his email <a href="mailto:${user.email}">${user.email}</a>
                         `
                     })
@@ -65,8 +65,8 @@ router.post('/expire-product', authMiddleware, productMiddleware, (req, res, nex
                         from: 'm.ubaidbadar@gmail.com',
                         subject: `Congratulations, your product ${product.title} bid has been finalized at ${product.price}!`,
                         html: `
-                            You can contact to the winner of this bid through 
-                            his phone number <a href="tel:${buyer.phoneNumber}">${buyer.phoneNumber}</a> 
+                            You can contact to the winner of this bid through
+                            his phone number <a href="tel:${buyer.phoneNumber}">${buyer.phoneNumber}</a>
                             or his email <a href="mailto:${buyer.email}">${buyer.email}</a>
                         `
                     })

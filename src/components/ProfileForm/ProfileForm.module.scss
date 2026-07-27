@@ -1,0 +1,10 @@
+@import '../../scss/colors.scss';
+
+.uploadImage {
+    width: 10rem;
+    span [class *= "ImageWrapper_wrapper"] {
+        border-radius: 50%;
+        overflow: hidden;
+        padding-top: 100%;
+    }
+}
