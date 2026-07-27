@@ -29,10 +29,13 @@ REACT_APP_SUPABASE_ANON_KEY=<your Supabase anon publishable key>
 SUPABASE_URL=<your Supabase project URL>
 SUPABASE_SERVICE_ROLE_KEY=<your Supabase service role key>
 REACT_APP_SUPABASE_STORAGE_BUCKET=speed4ever-images
+REACT_APP_ENABLE_GUEST_ACCESS=true
 CRON_SECRET=<random secret for external/manual cron calls, optional for Vercel Cron>
 ```
 
 Only `REACT_APP_*` values are exposed to the browser. `SUPABASE_SERVICE_ROLE_KEY` must remain server-side only.
+
+Guest access uses Supabase anonymous sign-ins. Enable anonymous sign-ins in the Supabase Auth settings while the temporary guest tester is active. Set `REACT_APP_ENABLE_GUEST_ACCESS=false` and redeploy to hide the guest button.
 
 After changing environment variables:
 

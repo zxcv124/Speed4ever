@@ -4,6 +4,10 @@ import supabase from './client';
 
 let currentUser = null;
 
+const GUEST_USERNAME_PREFIX = 'guest';
+
+const getGuestUsername = userId => `${GUEST_USERNAME_PREFIX}${String(userId || '').replace(/-/g, '').slice(0, 12)}`;
+
 const normalizeUser = (user, session) => {
     if (!user) return null;
 
@@ -75,6 +79,51 @@ export const onLogin = email => {
             })
         };
     });
+}
+
+export const onGuestLogin = async () => {
+    let { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+
+    let user = sessionData.session?.user;
+    let session = sessionData.session;
+
+    if (!user || !user.is_anonymous) {
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (error) throw error;
+        user = data.user;
+        session = data.session;
+    }
+
+    const displayName = user.user_metadata?.displayName || user.user_metadata?.username || getGuestUsername(user.id);
+    const profile = {
+        username: displayName,
+        uid: user.id,
+        display_name: displayName,
+        email: null,
+        phone_number: null,
+        photo_url: '',
+        date: Date.now()
+    };
+
+    const { error: profileError } = await supabase
+        .from('users')
+        .upsert(profile, { onConflict: 'username' });
+
+    if (profileError) throw profileError;
+
+    const { data: updated, error: updateError } = await supabase.auth.updateUser({
+        data: {
+            displayName,
+            username: displayName,
+            isGuest: true
+        }
+    });
+
+    if (updateError) throw updateError;
+
+    const { data: refreshed } = await supabase.auth.getSession();
+    return setCurrentUser(updated.user || user, refreshed.session || session);
 }
 
 export const onSaveUser = formProps => {

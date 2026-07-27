@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
+import LoginPage from './pages/LoginPage/LoginPage';
 
 const renderRoute = route => render(
   <MemoryRouter initialEntries={[route]}>
@@ -40,4 +41,14 @@ test('falls back unknown public routes to cover page', () => {
   );
 
   expect(screen.getByText(/login/i)).toBeInTheDocument();
+});
+
+test('shows guest access on the login page', () => {
+  render(
+    <MemoryRouter initialEntries={['/login']}>
+      <LoginPage />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByRole('button', { name: /continue as guest/i })).toBeInTheDocument();
 });
