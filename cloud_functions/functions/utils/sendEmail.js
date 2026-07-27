@@ -1,5 +1,22 @@
 const sgMail = require('@sendgrid/mail')
-sgMail.setApiKey("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");
 
+let isConfigured = false;
 
-module.exports = sgMail;
+const getClient = () => {
+    const apiKey = process.env.SENDGRID_API_KEY;
+
+    if (!apiKey) {
+        throw new Error('SENDGRID_API_KEY is required to send transactional email');
+    }
+
+    if (!isConfigured) {
+        sgMail.setApiKey(apiKey);
+        isConfigured = true;
+    }
+
+    return sgMail;
+}
+
+module.exports = {
+    send: (...args) => getClient().send(...args)
+};

@@ -9,7 +9,7 @@ import coverImage from '../../assets/cover-imae.jpg';
 import data from '../../coverpagedata';
 import { useContext } from 'react';
 import AuthContext from '../../context/AuthContext';
-import { auth } from '../../firebase/auth';
+import { signOutUser } from '../../firebase/auth';
 
 const CoverPage = () => {
     const user = useContext(AuthContext).user
@@ -24,7 +24,7 @@ const CoverPage = () => {
                         <ul className={`${styles.links} ${user === 'loading' ? 'invisible' : ''} mt-4 list-unstyled`}>
                             {user ? (
                                 <>
-                                    <li><button className='btn-primary bg-dark tx-light' onClick={() => auth.signOut()}>Logout</button></li>
+                                    <li><button className='btn-primary bg-dark tx-light' onClick={signOutUser}>Logout</button></li>
                                     <li><Link to='/auctions' className='btn-primary'>Auctions</Link></li>
                                 </>
                             ) : <li><Link to='/login' className='btn-primary bg-dark tx-light'>Login</Link></li>}
