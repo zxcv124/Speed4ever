@@ -21,5 +21,11 @@
         "X-Frame-Options": "DENY"
       }
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/finalize-expired-auctions",
+      "schedule": "0 0 * * *"
+    }
   ]
 }

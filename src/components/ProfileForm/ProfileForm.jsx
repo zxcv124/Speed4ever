@@ -5,7 +5,7 @@ import TextField from "../../ui/TextField/TextField";
 import UploadImage from "../../ui/UploadImage/UploadImage";
 import styles from './ProfileForm.module.scss';
 import userlogo from '../../assets/user-logo.svg';
-import { onSaveUser } from "../../firebase/auth";
+import { onSaveUser } from "../../supabase/auth";
 
 const ProfileForm = ({ onSuccess }) => {
     const onSubmit = formProps => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getSnapShot } from "../../firebase/db";
+import { getSnapShot } from "../../supabase/db";
 import ProfileImage from "../ProfileImage/ProfileImage";
 
 const Comments = ({ productId, path }) => {

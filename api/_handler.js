@@ -1,5 +1,5 @@
 const { HttpError } = require('./_errors');
-const { getFirebaseAdmin } = require('./_firebaseAdmin');
+const { getSupabaseAdmin } = require('./_supabaseAdmin');
 const { authenticateUser } = require('./_auctionService');
 
 const sendJson = (res, statusCode, body) => {
@@ -29,9 +29,9 @@ const createHandler = action => async (req, res) => {
     }
 
     try {
-        const firebase = getFirebaseAdmin();
-        const user = await authenticateUser({ ...firebase, req });
-        const result = await action({ ...firebase, user, body: req.body || {} });
+        const supabase = getSupabaseAdmin();
+        const user = await authenticateUser({ supabase, req });
+        const result = await action({ supabase, user, body: req.body || {} });
         sendJson(res, 200, result);
     } catch (error) {
         const statusCode = error instanceof HttpError ? error.statusCode : 500;

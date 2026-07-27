@@ -2,50 +2,51 @@
 
 ## Runtime
 
-The frontend is deployed on Vercel and uses Vercel Functions under `/api` for auction bidding and finalization. Firebase remains the database, authentication provider, and storage provider.
+Speed4Ever now uses a free managed backend stack:
 
-Firebase Cloud Functions are not required for the production app path.
+- Supabase Auth for email OTP login and sessions
+- Supabase Postgres for auctions, bids, blogs, comments, users, and notifications
+- Supabase Storage for uploaded images
+- Vercel static hosting plus Vercel Functions for bid/finalization API endpoints
+
+## Supabase Setup
+
+Create a free Supabase project, then run the SQL in:
+
+```text
+supabase/schema.sql
+```
+
+This creates the database tables, RLS policies, and public image bucket.
 
 ## Vercel Environment Variables
 
-Set these in the Vercel project:
+Set these in Vercel production:
 
 ```text
-FIREBASE_PROJECT_ID=speed-4-ever
-FIREBASE_SERVICE_ACCOUNT_BASE64=<base64 encoded Firebase service account JSON>
+REACT_APP_SUPABASE_URL=<your Supabase project URL>
+REACT_APP_SUPABASE_ANON_KEY=<your Supabase anon publishable key>
+SUPABASE_URL=<your Supabase project URL>
+SUPABASE_SERVICE_ROLE_KEY=<your Supabase service role key>
+REACT_APP_SUPABASE_STORAGE_BUCKET=speed4ever-images
+CRON_SECRET=<random secret for external/manual cron calls, optional for Vercel Cron>
 ```
 
-`FIREBASE_PROJECT_ID` is already safe to store as a normal project identifier. `FIREBASE_SERVICE_ACCOUNT_BASE64` must be treated as a secret.
+Only `REACT_APP_*` values are exposed to the browser. `SUPABASE_SERVICE_ROLE_KEY` must remain server-side only.
 
-To create `FIREBASE_SERVICE_ACCOUNT_BASE64` from a downloaded Firebase service account JSON file:
-
-```sh
-base64 -i service-account.json | tr -d '\n'
-```
-
-Then add it to Vercel:
-
-```sh
-vercel env add FIREBASE_SERVICE_ACCOUNT_BASE64 production
-```
-
-Redeploy production after changing environment variables:
+After changing environment variables:
 
 ```sh
 vercel deploy --prod
 ```
 
-## SendGrid
+Auction finalization runs through `/api/finalize-expired-auctions`. Vercel Hobby supports daily cron jobs, so the included `vercel.json` schedule closes expired auctions once per day.
 
-SendGrid is no longer required by the production app path. A previously committed SendGrid key was removed from the current source tree. Because it existed in Git history, it must remain revoked in Twilio SendGrid.
+## Removed Services
 
-## Firebase Rules
+The previous managed auth, database, storage, admin SDK, and cloud-function stack has been removed from the app.
 
-The checked-in Firestore and Storage rules are hardened, but they still need to be deployed from a machine with Firebase CLI access:
-
-```sh
-firebase deploy --only firestore:rules,storage
-```
+SendGrid is not used by the production app path.
 
 ## Verification
 
@@ -54,4 +55,5 @@ Run the full local verification suite before deployment:
 ```sh
 npm run test:all
 CI=true npm run build
+npx vercel build --prod
 ```

@@ -9,7 +9,7 @@ import coverImage from '../../assets/cover-imae.jpg';
 import data from '../../coverpagedata';
 import { useContext } from 'react';
 import AuthContext from '../../context/AuthContext';
-import { signOutUser } from '../../firebase/auth';
+import { signOutUser } from '../../supabase/auth';
 
 const CoverPage = () => {
     const user = useContext(AuthContext).user

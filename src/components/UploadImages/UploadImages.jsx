@@ -3,7 +3,7 @@ import UploadImage from "../../ui/UploadImage/UploadImage";
 import ImageWrapper from "../ImageWrapper/ImageWrapper";
 import styles from './UploadImages.module.scss';
 import ProgressBar from "../../ui/ProgressBar/ProgressBar";
-import { onDeleteFile, onUploadFile } from "../../firebase/storage";
+import { onDeleteFile, onUploadFile } from "../../supabase/storage";
 import Trash from "../../icons/Trash";
 import resizeImageHandler from "../../utils/resizeImageHandler";
 

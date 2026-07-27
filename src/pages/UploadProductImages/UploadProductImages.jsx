@@ -4,7 +4,7 @@ import { expireProduct } from '../../api/product';
 import logo from '../../assets/fulllogo.png'
 import UploadImages from '../../components/UploadImages/UploadImages';
 import AuthContext from '../../context/AuthContext';
-import { setDOC } from '../../firebase/db';
+import { setDOC } from '../../supabase/db';
 import useDoc from '../../hooks/useDoc';
 import ArrowBack from '../../icons/ArrowBack';
 

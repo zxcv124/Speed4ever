@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { getRecaptcha } from "../firebase/auth";
+import { getRecaptcha } from "../supabase/auth";
 
 const Form = ({ footer, onSubmit, children, isRecaptcha = false, id, ...props }) => {
     const [{ err, isLoading, message }, setStatus] = useState({});

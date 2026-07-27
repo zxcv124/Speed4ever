@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getDOC } from "../firebase/db";
-import { auth } from "../firebase/auth";
+import { getDOC } from "../supabase/db";
+import { auth } from "../supabase/auth";
 
 const useDoc = (path, getUserInfo) => {
     const [status, setStatus] = useState({ isLoading: true });

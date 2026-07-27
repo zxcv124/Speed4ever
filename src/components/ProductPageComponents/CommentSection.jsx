@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import AuthContext from "../../context/AuthContext";
-import { addDOC } from "../../firebase/db";
+import { addDOC } from "../../supabase/db";
 import Form from "../../hoc/Form";
 import TextArea from "../../ui/TextArea/TextArea";
 import ProfileImage from "../ProfileImage/ProfileImage";

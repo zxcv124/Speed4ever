@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import img1 from '../../assets/Group 858.png';
-import { addDOC, setDOC } from '../../firebase/db';
+import { addDOC, setDOC } from '../../supabase/db';
 import Form from '../../hoc/Form';
 import Facebook from '../../icons/Facebook';
 import Instagram from '../../icons/Instagram';

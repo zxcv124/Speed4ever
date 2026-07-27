@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Countdown from 'react-countdown';
-import { onLogin } from "../../firebase/auth";
+import { onLogin } from "../../supabase/auth";
 import Checked from "../../icons/Checked";
 
 const Main = ({ phoneNumber, onPhoneSubmit }) => {

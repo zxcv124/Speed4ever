@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import logo from '../../assets/Group 118.png'
 import UploadImages from '../../components/UploadImages/UploadImages';
-import { setDOC } from '../../firebase/db';
+import { setDOC } from '../../supabase/db';
 import useDoc from '../../hooks/useDoc';
 import ArrowBack from '../../icons/ArrowBack';
 

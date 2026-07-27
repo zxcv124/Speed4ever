@@ -1,6 +1,6 @@
 import { createContext, useEffect, useRef, useState } from 'react';
 import ProfileForm from '../components/ProfileForm/ProfileForm';
-import { auth, onAuthUserChanged, signOutUser } from '../firebase/auth';
+import { auth, onAuthUserChanged, signOutUser } from '../supabase/auth';
 
 const AuthContext = createContext({ user: null });
 

@@ -1,4 +1,3 @@
-import { where } from 'firebase/firestore';
 import { useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -14,7 +13,7 @@ const useFilterQuery = (cb) => {
                 const prop = key.replace('min_', '').replace('max_', '');
                 const operator = key.includes('min') ? '>=' : key.includes('max') ? '<=' : '==';
                 const queryValue = (key.includes('min') || key.includes('max')) ? +value : value;
-                params.push(where(prop, operator, queryValue));
+                params.push({ prop, operator, value: queryValue });
             }
         }
         return params;

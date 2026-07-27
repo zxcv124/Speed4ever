@@ -11,6 +11,7 @@ const normalizePrice = value => {
 }
 
 const getAuctionExpiry = product => {
+    if (product.expires_at) return Number(product.expires_at);
     if (product.expiresAt) return Number(product.expiresAt);
 
     const createdAt = Number(product.date);
@@ -30,163 +31,198 @@ const getBearerToken = req => {
     return match[1];
 }
 
-const authenticateUser = async ({ auth, db, req }) => {
-    const decodedToken = await auth.verifyIdToken(getBearerToken(req));
+const authenticateUser = async ({ supabase, req }) => {
+    const token = getBearerToken(req);
+    const { data: authData, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !authData.user) throwHttpError('Invalid authorization token.', 401);
+
     const username = String(req.body?.username || '').trim();
     if (!username) throwHttpError('Username is required.', 400);
 
-    const userDoc = await db.doc(`users/${username}`).get();
-    if (!userDoc.exists) throwHttpError('User profile was not found.', 404);
+    const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .maybeSingle();
 
-    const user = userDoc.data();
-    if (user.uid !== decodedToken.uid) throwHttpError('Invalid user token.', 401);
+    if (profileError) throw profileError;
+    if (!profile) throwHttpError('User profile was not found.', 404);
+    if (profile.uid !== authData.user.id) throwHttpError('Invalid user token.', 401);
 
-    return { ...user, username, uid: decodedToken.uid };
+    return {
+        ...profile,
+        username,
+        uid: authData.user.id
+    };
 }
 
-const getTopBidSnapshot = (db, productId) => (
-    db
-        .collection(`products/${productId}/bids`)
-        .orderBy('price', 'desc')
+const getTopBid = async (supabase, productId) => {
+    const { data, error } = await supabase
+        .from('product_bids')
+        .select('*')
+        .eq('product_id', productId)
+        .order('price', { ascending: false })
         .limit(1)
-        .get()
-);
+        .maybeSingle();
 
-const placeBid = async ({ db, user, body }) => {
+    if (error) throw error;
+    return data;
+}
+
+const placeBid = async ({ supabase, user, body }) => {
     const productId = String(body?.productId || '').trim();
     if (!productId) throwHttpError('Product id is required.', 400);
 
     const price = normalizePrice(body.price);
-    const productRef = db.doc(`products/${productId}`);
 
-    return db.runTransaction(async transaction => {
-        const productDoc = await transaction.get(productRef);
-        if (!productDoc.exists) throwHttpError("Product doesn't exist anymore.", 404);
+    const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', productId)
+        .maybeSingle();
 
-        const product = productDoc.data();
-        if (product.uid === user.uid) throwHttpError('Owners cannot bid on their own auctions.', 403);
-        if (product.status !== 'Active') throwHttpError('Auction is not active.', 409);
+    if (productError) throw productError;
+    if (!product) throwHttpError("Product doesn't exist anymore.", 404);
+    if (product.uid === user.uid) throwHttpError('Owners cannot bid on their own auctions.', 403);
+    if (product.status !== 'Active') throwHttpError('Auction is not active.', 409);
 
-        const expiresAt = getAuctionExpiry(product);
-        if (Date.now() >= expiresAt) throwHttpError('Auction has expired.', 409);
+    const expiresAt = getAuctionExpiry(product);
+    if (Date.now() >= expiresAt) throwHttpError('Auction has expired.', 409);
 
-        const topBidSnapshot = await transaction.get(
-            db.collection(`products/${productId}/bids`).orderBy('price', 'desc').limit(1)
-        );
-        const topBid = topBidSnapshot.docs[0]?.data();
-        const minimumPrice = Math.max(Number(product.price) || 0, Number(topBid?.price) || 0) + 1;
-        if (price < minimumPrice) throwHttpError(`Price must be at least ${minimumPrice}.`, 400);
+    const topBid = await getTopBid(supabase, productId);
+    const minimumPrice = Math.max(Number(product.price) || 0, Number(topBid?.price) || 0) + 1;
+    if (price < minimumPrice) throwHttpError(`Price must be at least ${minimumPrice}.`, 400);
 
-        transaction.set(db.doc(`products/${productId}/bids/${user.username}`), {
+    const { error: bidError } = await supabase
+        .from('product_bids')
+        .upsert({
+            product_id: productId,
+            username: user.username,
             date: Date.now(),
             price,
             uid: user.uid
-        }, { merge: true });
+        }, { onConflict: 'product_id,username' });
 
-        transaction.set(productRef, {
-            currentBid: {
+    if (bidError) throw bidError;
+
+    const { error: productUpdateError } = await supabase
+        .from('products')
+        .update({
+            current_bid: {
                 username: user.username,
                 uid: user.uid,
                 price
             },
-            expiresAt
-        }, { merge: true });
+            expires_at: expiresAt
+        })
+        .eq('id', productId);
 
-        return { message: 'You have successfully bid.', minimumPrice, price };
-    });
+    if (productUpdateError) throw productUpdateError;
+
+    return { message: 'You have successfully bid.', minimumPrice, price };
 }
 
-const finalizeAuction = async ({ db, FieldValue, user, body }) => {
+const finalizeAuction = async ({ supabase, user, body }) => {
     const productId = String(body?.productId || '').trim();
     if (!productId) throwHttpError('Product id is required.', 400);
 
-    const productRef = db.doc(`products/${productId}`);
+    const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', productId)
+        .maybeSingle();
+
+    if (productError) throw productError;
+    if (!product) throwHttpError("Product doesn't exist anymore.", 404);
+    if (product.uid !== user.uid) throwHttpError('Only the seller can finalize this auction.', 403);
+
+    const expiresAt = getAuctionExpiry(product);
     const now = Date.now();
 
-    const result = await db.runTransaction(async transaction => {
-        const productDoc = await transaction.get(productRef);
-        if (!productDoc.exists) throwHttpError("Product doesn't exist anymore.", 404);
+    if (product.status === 'Finalized' || product.status === 'Expired') {
+        return { message: 'Auction is already closed.', status: product.status, expiresAt };
+    }
 
-        const product = productDoc.data();
-        if (product.uid !== user.uid) throwHttpError('Only the seller can finalize this auction.', 403);
+    if (now < expiresAt) {
+        const { error } = await supabase
+            .from('products')
+            .update({ expires_at: expiresAt, status: 'Active' })
+            .eq('id', productId);
 
-        const expiresAt = getAuctionExpiry(product);
-        if (!product.expiresAt) {
-            transaction.set(productRef, { expiresAt, status: 'Active' }, { merge: true });
-        }
+        if (error) throw error;
+        return { message: 'Auction expiry has been scheduled.', status: 'Active', expiresAt };
+    }
 
-        if (product.status === 'Finalized' || product.status === 'Expired') {
-            return { message: 'Auction is already closed.', status: product.status, expiresAt };
-        }
+    const topBid = await getTopBid(supabase, productId);
+    if (!topBid) {
+        const { error } = await supabase
+            .from('products')
+            .update({ status: 'Expired', closed_at: now, expires_at: expiresAt })
+            .eq('id', productId);
 
-        if (now < expiresAt) {
-            return { message: 'Auction expiry has been scheduled.', status: 'Active', expiresAt };
-        }
+        if (error) throw error;
+        return { message: 'Auction expired with no bids.', status: 'Expired', expiresAt };
+    }
 
-        const topBidSnapshot = await transaction.get(
-            db.collection(`products/${productId}/bids`).orderBy('price', 'desc').limit(1)
-        );
-        const topBidDoc = topBidSnapshot.docs[0];
+    const { data: winner, error: winnerError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', topBid.username)
+        .maybeSingle();
 
-        if (!topBidDoc) {
-            transaction.set(productRef, {
-                status: 'Expired',
-                closedAt: now,
-                expiresAt
-            }, { merge: true });
-            return { message: 'Auction expired with no bids.', status: 'Expired', expiresAt };
-        }
+    if (winnerError) throw winnerError;
 
-        const winningBid = topBidDoc.data();
-        const winnerUsername = topBidDoc.id;
-        const winnerDoc = await transaction.get(db.doc(`users/${winnerUsername}`));
-        const winner = winnerDoc.exists ? winnerDoc.data() : {};
+    const winnerSummary = {
+        username: topBid.username,
+        uid: topBid.uid,
+        email: winner?.email || null,
+        phoneNumber: winner?.phone_number || null,
+        price: topBid.price
+    };
 
-        const winnerSummary = {
-            username: winnerUsername,
-            uid: winningBid.uid,
-            email: winner.email || null,
-            phoneNumber: winner.phoneNumber || null,
-            price: winningBid.price
-        };
-
-        transaction.set(productRef, {
+    const { error: updateError } = await supabase
+        .from('products')
+        .update({
             status: 'Finalized',
-            closedAt: now,
-            expiresAt,
+            closed_at: now,
+            expires_at: expiresAt,
             winner: winnerSummary
-        }, { merge: true });
+        })
+        .eq('id', productId);
 
-        const sellerNotificationRef = db.collection(`users/${user.username}/notifications`).doc();
-        const buyerNotificationRef = db.collection(`users/${winnerUsername}/notifications`).doc();
+    if (updateError) throw updateError;
 
-        transaction.set(sellerNotificationRef, {
-            type: 'auction-finalized',
-            productId,
-            title: product.title || '',
-            winner: winnerSummary,
-            read: false,
-            createdAt: FieldValue.serverTimestamp()
-        });
-
-        transaction.set(buyerNotificationRef, {
-            type: 'auction-won',
-            productId,
-            title: product.title || '',
-            seller: {
+    const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert([
+            {
                 username: user.username,
-                email: user.email || null,
-                phoneNumber: user.phoneNumber || null
+                type: 'auction-finalized',
+                product_id: productId,
+                title: product.title || '',
+                payload: { winner: winnerSummary },
+                read: false
             },
-            price: winningBid.price,
-            read: false,
-            createdAt: FieldValue.serverTimestamp()
-        });
+            {
+                username: topBid.username,
+                type: 'auction-won',
+                product_id: productId,
+                title: product.title || '',
+                payload: {
+                    seller: {
+                        username: user.username,
+                        email: user.email || null,
+                        phoneNumber: user.phone_number || null
+                    },
+                    price: topBid.price
+                },
+                read: false
+            }
+        ]);
 
-        return { message: 'Auction finalized.', status: 'Finalized', expiresAt, winner: winnerSummary };
-    });
+    if (notificationError) throw notificationError;
 
-    return result;
+    return { message: 'Auction finalized.', status: 'Finalized', expiresAt, winner: winnerSummary };
 }
 
 module.exports = {
@@ -194,7 +230,7 @@ module.exports = {
     finalizeAuction,
     getAuctionExpiry,
     getBearerToken,
-    getTopBidSnapshot,
+    getTopBid,
     normalizePrice,
     placeBid
 };

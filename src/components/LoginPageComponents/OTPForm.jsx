@@ -25,7 +25,7 @@ const OTPForm = ({ confirmation, phoneNumber }) => {
                 name='otp'
                 className='mx-auto w-100'
             />
-            <small>We have sent you 6 digits confirmation code on your mobile {phoneNumber}</small>
+            <small>We have sent you a confirmation code at {phoneNumber}</small>
         </Form>
     )
 }

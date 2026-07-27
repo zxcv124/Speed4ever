@@ -8,7 +8,7 @@ import { useState } from 'react';
 import Form from '../../hoc/Form';
 import useFilter from '../../hooks/useFilter';
 import toNormalDate from '../../utils/toNormalDate';
-import getNextDate from '../../firebase/getNextDate';
+import getNextDate from '../../supabase/getNextDate';
 import HashLink from '../HashLink/HashLink';
 
 const FiltersWrapper = () => {
